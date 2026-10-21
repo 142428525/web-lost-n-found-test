@@ -1,20 +1,1081 @@
 <!DOCTYPE html>
-<html lang="zh-cmn-Hans">
+<html lang="zh-cn">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="校园失物招领系统：发布、搜索和查看校园失物信息。">
 	<title>校园失物招领系统</title>
 
 	<style>
-		/* css here... */
+		:root {
+			--primary: #2563eb;
+			--primary-dark: #1d4ed8;
+			--primary-soft: #eff6ff;
+			--background: #f5f7fb;
+			--surface: #ffffff;
+			--text: #1f2937;
+			--muted: #6b7280;
+			--border: #e5e7eb;
+			--danger: #dc2626;
+			--radius: 8px;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		[hidden] {
+			display: none !important;
+		}
+
+		body {
+			margin: 0;
+			background: var(--background);
+			color: var(--text);
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+			line-height: 1.5;
+		}
+
+		button,
+		input {
+			font: inherit;
+		}
+
+		.container {
+			width: 100%;
+			max-width: 1040px;
+			margin: 0 auto;
+			padding: 0 20px;
+		}
+
+		.visually-hidden {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0 0 0 0);
+			white-space: nowrap;
+			border: 0;
+		}
+
+		.site-header {
+			background: var(--surface);
+			border-bottom: 1px solid var(--border);
+		}
+
+		.header-inner {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			gap: 16px 24px;
+			padding-top: 18px;
+			padding-bottom: 18px;
+		}
+
+		.brand h1 {
+			margin: 0;
+			font-size: 1.375rem;
+		}
+
+		.subtitle {
+			margin: 2px 0 0;
+			color: var(--muted);
+			font-size: 0.875rem;
+		}
+
+		.header-actions {
+			display: flex;
+			flex: 1 1 340px;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 12px;
+		}
+
+		.search {
+			flex: 1 1 220px;
+			max-width: 360px;
+		}
+
+		.search input {
+			width: 100%;
+			padding: 9px 12px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			background: var(--surface);
+			color: var(--text);
+		}
+
+		.search input::placeholder {
+			color: #9ca3af;
+		}
+
+		.search input:focus,
+		.field input:focus {
+			border-color: var(--primary);
+			outline: 2px solid rgba(37, 99, 235, 0.15);
+		}
+
+		.btn {
+			padding: 9px 16px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			background: var(--surface);
+			color: var(--text);
+			font-size: 0.9375rem;
+			white-space: nowrap;
+			cursor: pointer;
+		}
+
+		.btn:hover {
+			background: #f8fafc;
+		}
+
+		.btn-primary {
+			border-color: var(--primary);
+			background: var(--primary);
+			color: #fff;
+		}
+
+		.btn-primary:hover {
+			border-color: var(--primary-dark);
+			background: var(--primary-dark);
+		}
+
+		.btn:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+		.btn:disabled:hover {
+			background: var(--primary);
+			border-color: var(--primary);
+		}
+
+		button:focus-visible,
+		a:focus-visible {
+			outline: 2px solid var(--primary);
+			outline-offset: 2px;
+		}
+
+		main {
+			padding-top: 26px;
+			padding-bottom: 56px;
+		}
+
+		.list-head {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 12px;
+			margin-bottom: 14px;
+		}
+
+		.list-head h2 {
+			margin: 0;
+			font-size: 1.125rem;
+		}
+
+		.muted {
+			color: var(--muted);
+			font-size: 0.875rem;
+		}
+
+		.empty {
+			margin: 0;
+			padding: 44px 20px;
+			border: 1px dashed var(--border);
+			border-radius: var(--radius);
+			background: var(--surface);
+			color: var(--muted);
+			text-align: center;
+		}
+
+		.item-list {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+			gap: 14px;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+
+		.item-card {
+			display: flex;
+			justify-content: space-between;
+			gap: 14px;
+			width: 100%;
+			padding: 16px;
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+			background: var(--surface);
+			color: inherit;
+			text-align: left;
+			cursor: pointer;
+		}
+
+		.item-card:hover {
+			border-color: var(--primary);
+		}
+
+		.card-main {
+			display: block;
+			flex: 1;
+			min-width: 0;
+		}
+
+		.card-top {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 10px;
+		}
+
+		.item-title {
+			display: block;
+			font-size: 1rem;
+			font-weight: 600;
+			overflow-wrap: anywhere;
+		}
+
+		.badge {
+			display: inline-block;
+			padding: 2px 8px;
+			border-radius: 999px;
+			background: var(--primary-soft);
+			color: var(--primary);
+			font-size: 0.75rem;
+			font-weight: 600;
+			white-space: nowrap;
+		}
+
+		.meta {
+			display: block;
+			margin-top: 4px;
+			color: var(--muted);
+			font-size: 0.8125rem;
+			overflow-wrap: anywhere;
+		}
+
+		.card-thumb {
+			display: block;
+			flex: 0 0 72px;
+			width: 72px;
+			height: 72px;
+			overflow: hidden;
+			border-radius: 6px;
+			background: #eef2f7;
+		}
+
+		.card-thumb img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.dialog {
+			width: min(600px, calc(100vw - 28px));
+			max-height: calc(100vh - 40px);
+			padding: 0;
+			overflow-y: auto;
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			background: var(--surface);
+			color: var(--text);
+		}
+
+		.dialog::backdrop {
+			background: rgba(15, 23, 42, 0.45);
+		}
+
+		.dialog-body {
+			padding: 20px 22px 22px;
+		}
+
+		.dialog-head {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 12px;
+			margin-bottom: 16px;
+		}
+
+		.dialog-head h2 {
+			margin: 0;
+			font-size: 1.1875rem;
+			overflow-wrap: anywhere;
+		}
+
+		.icon-btn {
+			padding: 0 4px;
+			border: 0;
+			background: none;
+			color: var(--muted);
+			font-size: 1.5rem;
+			line-height: 1;
+			cursor: pointer;
+		}
+
+		.icon-btn:hover {
+			color: var(--text);
+		}
+
+		.detail-badge {
+			margin-bottom: 14px;
+		}
+
+		.detail-image {
+			display: block;
+			width: 100%;
+			max-height: 300px;
+			margin: 0 0 8px;
+			border-radius: 8px;
+			background: #f1f5f9;
+			object-fit: contain;
+		}
+
+		.detail-row {
+			display: flex;
+			gap: 14px;
+			padding: 11px 0;
+			border-bottom: 1px solid var(--border);
+		}
+
+		.detail-row:last-child {
+			border-bottom: 0;
+		}
+
+		.detail-label {
+			flex: 0 0 82px;
+			color: var(--muted);
+			font-size: 0.875rem;
+		}
+
+		.detail-value {
+			flex: 1;
+			min-width: 0;
+			overflow-wrap: anywhere;
+		}
+
+		.link-btn {
+			margin-left: 8px;
+			padding: 0;
+			border: 0;
+			background: none;
+			color: var(--primary);
+			font-weight: 600;
+			cursor: pointer;
+		}
+
+		.link-btn:hover {
+			text-decoration: underline;
+		}
+
+		.field {
+			margin-bottom: 14px;
+		}
+
+		.field label {
+			display: block;
+			margin-bottom: 6px;
+			font-size: 0.875rem;
+			font-weight: 500;
+		}
+
+		.field input {
+			width: 100%;
+			padding: 9px 10px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			background: var(--surface);
+			color: var(--text);
+		}
+
+		.field input[type="file"] {
+			padding: 6px 0;
+			border: 0;
+		}
+
+		.required {
+			color: var(--danger);
+		}
+
+		.optional {
+			color: var(--muted);
+			font-weight: 400;
+		}
+
+		.hint {
+			margin: 6px 0 0;
+			color: var(--muted);
+			font-size: 0.8125rem;
+		}
+
+		.image-preview {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			margin-top: 10px;
+		}
+
+		.image-preview img {
+			display: block;
+			width: 80px;
+			height: 80px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			object-fit: cover;
+		}
+
+		.btn-text {
+			padding: 4px 0;
+			border: 0;
+			background: none;
+			color: var(--primary);
+		}
+
+		.btn-text:hover {
+			background: none;
+			text-decoration: underline;
+		}
+
+		.form-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.toast {
+			position: fixed;
+			left: 50%;
+			bottom: 24px;
+			z-index: 100;
+			max-width: calc(100vw - 40px);
+			padding: 10px 18px;
+			border-radius: 999px;
+			background: #111827;
+			color: #fff;
+			font-size: 0.9rem;
+			text-align: center;
+			transform: translateX(-50%);
+		}
+
+		@media (max-width: 640px) {
+			.container {
+				padding: 0 14px;
+			}
+
+			.header-actions {
+				flex-basis: 100%;
+			}
+
+			.search {
+				max-width: none;
+			}
+
+			.item-list {
+				grid-template-columns: 1fr;
+			}
+
+			.dialog-body {
+				padding: 18px 16px 20px;
+			}
+
+			.detail-label {
+				flex-basis: 72px;
+			}
+		}
 	</style>
 </head>
 <body>
-	Test qwq
-	<!-- html here... -->
+	<header class="site-header">
+		<div class="container header-inner">
+			<div class="brand">
+				<h1>校园失物招领</h1>
+				<p class="subtitle">发布失物信息，帮助物品回家</p>
+			</div>
+			<div class="header-actions">
+				<label class="search">
+					<span class="visually-hidden">搜索失物</span>
+					<input id="searchInput" type="search" placeholder="搜索物品名称或丢失地点" autocomplete="off">
+				</label>
+				<button id="openPublishBtn" class="btn btn-primary" type="button">发布失物</button>
+			</div>
+		</div>
+	</header>
+
+	<main class="container">
+		<div class="list-head">
+			<h2>失物列表</h2>
+			<span id="resultCount" class="muted"></span>
+		</div>
+		<p id="emptyState" class="empty" hidden></p>
+		<ul id="itemList" class="item-list"></ul>
+	</main>
+
+	<dialog id="detailDialog" class="dialog" aria-labelledby="detailTitle">
+		<div class="dialog-body">
+			<div class="dialog-head">
+				<h2 id="detailTitle"></h2>
+				<button class="icon-btn" type="button" data-close-dialog="detailDialog" aria-label="关闭详情">×</button>
+			</div>
+			<div id="detailContent"></div>
+		</div>
+	</dialog>
+
+	<dialog id="publishDialog" class="dialog" aria-labelledby="publishTitle">
+		<form id="publishForm" class="dialog-body" novalidate>
+			<div class="dialog-head">
+				<h2 id="publishTitle">发布失物</h2>
+				<button class="icon-btn" type="button" data-close-dialog="publishDialog" aria-label="关闭发布表单">×</button>
+			</div>
+
+			<div class="field">
+				<label for="titleInput">物品名称 <span class="required">*</span></label>
+				<input id="titleInput" type="text" placeholder="如：黑色雨伞" autocomplete="off">
+			</div>
+
+			<div class="field">
+				<label for="locationInput">丢失地点 <span class="required">*</span></label>
+				<input id="locationInput" type="text" placeholder="如：图书馆三楼" autocomplete="off">
+			</div>
+
+			<div class="field">
+				<label for="timeInput">丢失时间 <span class="optional">（选填）</span></label>
+				<input id="timeInput" type="datetime-local">
+			</div>
+
+			<div class="field">
+				<label for="contactInput">联系方式 <span class="required">*</span></label>
+				<input id="contactInput" type="text" placeholder="手机号、邮箱或微信号" autocomplete="off">
+				<p class="hint">列表中脱敏显示，可在详情页查看完整联系方式。</p>
+			</div>
+
+			<div class="field">
+				<label for="imageInput">物品图片 <span class="optional">（选填，不超过 500 KiB）</span></label>
+				<input id="imageInput" type="file" accept="image/*">
+				<div id="imagePreviewWrap" class="image-preview" hidden>
+					<img id="imagePreview" alt="所选物品图片预览">
+					<button id="removeImageBtn" class="btn btn-text" type="button">移除图片</button>
+				</div>
+				<p id="imageHint" class="hint" hidden></p>
+			</div>
+
+			<div class="form-actions">
+				<button class="btn" type="button" data-close-dialog="publishDialog">取消</button>
+				<button id="submitBtn" class="btn btn-primary" type="submit">发布</button>
+			</div>
+		</form>
+	</dialog>
+
+	<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
 	<script>
-		// js here...
+		const STORAGE_KEY = "campus-lost-found-items-v1";
+		const MAX_IMAGE_BYTES = 500 * 1024;
+		const MAX_SOURCE_IMAGE_BYTES = 25 * 1024 * 1024;
+		const ALLOWED_IMAGE_DATA_URL = /^data:image\/(?:png|jpe?g|webp|gif);base64,/i;
+
+		const searchInput = document.getElementById("searchInput");
+		const resultCount = document.getElementById("resultCount");
+		const emptyState = document.getElementById("emptyState");
+		const itemList = document.getElementById("itemList");
+
+		const detailDialog = document.getElementById("detailDialog");
+		const detailTitle = document.getElementById("detailTitle");
+		const detailContent = document.getElementById("detailContent");
+
+		const openPublishBtn = document.getElementById("openPublishBtn");
+		const publishDialog = document.getElementById("publishDialog");
+		const publishForm = document.getElementById("publishForm");
+		const titleInput = document.getElementById("titleInput");
+		const locationInput = document.getElementById("locationInput");
+		const timeInput = document.getElementById("timeInput");
+		const contactInput = document.getElementById("contactInput");
+		const imageInput = document.getElementById("imageInput");
+		const imagePreviewWrap = document.getElementById("imagePreviewWrap");
+		const imagePreview = document.getElementById("imagePreview");
+		const imageHint = document.getElementById("imageHint");
+		const removeImageBtn = document.getElementById("removeImageBtn");
+		const submitBtn = document.getElementById("submitBtn");
+		const toast = document.getElementById("toast");
+
+		let items = loadItems();
+		let selectedImage = null;
+		let imageProcessToken = 0;
+		let toastTimer = null;
+
+		function createId() {
+			return String(Date.now()) + String(Math.floor(Math.random() * 1000000));
+		}
+
+		function normalizeItem(raw) {
+			if (!raw || typeof raw !== "object") {
+				return null;
+			}
+
+			const title = typeof raw.title === "string" ? raw.title.trim() : "";
+			const location = typeof raw.location === "string" ? raw.location.trim() : "";
+			const contact = typeof raw.contact === "string" ? raw.contact.trim() : "";
+			if (!title || !location || !contact) {
+				return null;
+			}
+
+			const item = {
+				id: raw.id === undefined || raw.id === null ? createId() : String(raw.id),
+				title: title,
+				location: location,
+				time: typeof raw.time === "string" ? raw.time : "",
+				contact: contact,
+				status: "待认领",
+				createdAt: Number.isFinite(raw.createdAt) ? raw.createdAt : Date.now()
+			};
+
+			if (typeof raw.image === "string" && ALLOWED_IMAGE_DATA_URL.test(raw.image)) {
+				item.image = raw.image;
+			}
+
+			return item;
+		}
+
+		function loadItems() {
+			try {
+				const raw = localStorage.getItem(STORAGE_KEY);
+				if (!raw) {
+					return [];
+				}
+				const parsed = JSON.parse(raw);
+				if (!Array.isArray(parsed)) {
+					return [];
+				}
+				return parsed.map(normalizeItem).filter(Boolean);
+			} catch (error) {
+				console.error("读取本地失物数据失败：", error);
+				return [];
+			}
+		}
+
+		function persistItems() {
+			try {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+				return true;
+			} catch (error) {
+				console.error("保存本地失物数据失败：", error);
+				alert("保存失败：浏览器本地存储空间不足，请清理站点数据后重试。");
+				return false;
+			}
+		}
+
+		function el(tagName, className, text) {
+			const node = document.createElement(tagName);
+			if (className) {
+				node.className = className;
+			}
+			if (text !== undefined) {
+				node.textContent = text;
+			}
+			return node;
+		}
+
+		function formatDateTime(value) {
+			if (value === undefined || value === null || value === "") {
+				return "未填写";
+			}
+			const date = new Date(value);
+			if (Number.isNaN(date.getTime())) {
+				return String(value);
+			}
+			const pad = (number) => String(number).padStart(2, "0");
+			return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) +
+				" " + pad(date.getHours()) + ":" + pad(date.getMinutes());
+		}
+
+		function maskContact(contact) {
+			const value = String(contact || "").trim();
+			if (!value) {
+				return "未填写";
+			}
+			if (/^\d{11}$/.test(value)) {
+				return value.slice(0, 3) + "****" + value.slice(7);
+			}
+			if (/^[^\s@]+@[^\s@]+$/.test(value)) {
+				const atIndex = value.indexOf("@");
+				const local = value.slice(0, atIndex);
+				const domain = value.slice(atIndex + 1);
+				if (local.length <= 2) {
+					return local.charAt(0) + "***@" + domain;
+				}
+				return local.slice(0, 2) + "***@" + domain;
+			}
+			if (value.length <= 2) {
+				return "***";
+			}
+			return value.charAt(0) + "***" + value.charAt(value.length - 1);
+		}
+
+		function showToast(message) {
+			toast.textContent = message;
+			toast.hidden = false;
+			clearTimeout(toastTimer);
+			toastTimer = setTimeout(() => {
+				toast.hidden = true;
+			}, 2400);
+		}
+
+		function render() {
+			const keyword = searchInput.value.trim().toLowerCase();
+			const sorted = items.slice().sort((a, b) => b.createdAt - a.createdAt);
+			const visible = keyword
+				? sorted.filter((item) => {
+					return item.title.toLowerCase().includes(keyword) ||
+						item.location.toLowerCase().includes(keyword);
+				})
+				: sorted;
+
+			const fragment = document.createDocumentFragment();
+			visible.forEach((item) => {
+				fragment.appendChild(createItemCard(item));
+			});
+			itemList.replaceChildren(fragment);
+			itemList.hidden = visible.length === 0;
+
+			resultCount.textContent = items.length > 0 ? "共 " + visible.length + " 条" : "";
+
+			if (visible.length === 0) {
+				emptyState.hidden = false;
+				emptyState.textContent = items.length === 0 && keyword === ""
+					? "暂无失物信息，点击“发布失物”发布第一条。"
+					: "没有找到相关失物信息";
+			} else {
+				emptyState.hidden = true;
+				emptyState.textContent = "";
+			}
+		}
+
+		function createItemCard(item) {
+			const card = document.createElement("button");
+			card.type = "button";
+			card.className = "item-card";
+			card.setAttribute("aria-label", "查看失物详情：" + item.title);
+			card.addEventListener("click", () => openDetail(item));
+
+			const main = el("span", "card-main");
+			const top = el("span", "card-top");
+			top.appendChild(el("span", "item-title", item.title));
+			top.appendChild(el("span", "badge", item.status));
+
+			main.appendChild(top);
+			main.appendChild(el("span", "meta", "丢失地点：" + item.location));
+			main.appendChild(el("span", "meta", "丢失时间：" + formatDateTime(item.time)));
+			main.appendChild(el("span", "meta", "联系方式：" + maskContact(item.contact)));
+			card.appendChild(main);
+
+			if (item.image) {
+				const thumb = el("span", "card-thumb");
+				const image = document.createElement("img");
+				image.src = item.image;
+				image.alt = "";
+				image.loading = "lazy";
+				thumb.appendChild(image);
+				card.appendChild(thumb);
+			}
+
+			return card;
+		}
+
+		function createDetailRow(labelText, valueText) {
+			const row = el("div", "detail-row");
+			row.appendChild(el("span", "detail-label", labelText));
+			row.appendChild(el("span", "detail-value", valueText));
+			return row;
+		}
+
+		function openDetail(item) {
+			detailTitle.textContent = item.title;
+			detailContent.replaceChildren();
+
+			detailContent.appendChild(el("span", "badge detail-badge", item.status));
+
+			if (item.image) {
+				const image = el("img", "detail-image");
+				image.src = item.image;
+				image.alt = "物品图片：" + item.title;
+				detailContent.appendChild(image);
+			}
+
+			detailContent.appendChild(createDetailRow("丢失地点", item.location));
+			detailContent.appendChild(createDetailRow("丢失时间", formatDateTime(item.time)));
+
+			const contactRow = el("div", "detail-row");
+			contactRow.appendChild(el("span", "detail-label", "联系方式"));
+			const contactValue = el("span", "detail-value");
+			const contactText = el("span", "", maskContact(item.contact));
+			const revealButton = el("button", "link-btn", "查看联系方式");
+			revealButton.type = "button";
+			revealButton.addEventListener("click", () => {
+				contactText.textContent = item.contact;
+				revealButton.remove();
+			});
+			contactValue.appendChild(contactText);
+			contactValue.appendChild(revealButton);
+			contactRow.appendChild(contactValue);
+			detailContent.appendChild(contactRow);
+
+			detailContent.appendChild(createDetailRow("发布时间", formatDateTime(item.createdAt)));
+
+			detailDialog.showModal();
+		}
+
+		function resetPublishForm() {
+			publishForm.reset();
+			imageProcessToken += 1;
+			selectedImage = null;
+			imageInput.value = "";
+			imagePreview.removeAttribute("src");
+			imagePreviewWrap.hidden = true;
+			imageHint.hidden = true;
+			imageHint.textContent = "";
+			submitBtn.disabled = false;
+		}
+
+		function base64Bytes(dataUrl) {
+			const commaIndex = dataUrl.indexOf(",");
+			const base64 = commaIndex >= 0 ? dataUrl.slice(commaIndex + 1) : "";
+			const padding = base64.endsWith("==") ? 2 : (base64.endsWith("=") ? 1 : 0);
+			return Math.floor(base64.length * 3 / 4) - padding;
+		}
+
+		function formatBytes(bytes) {
+			if (bytes < 1024) {
+				return bytes + " B";
+			}
+			return Math.round(bytes / 1024) + " KiB";
+		}
+
+		function readFileAsDataURL(file) {
+			return new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.onload = () => resolve(String(reader.result));
+				reader.onerror = () => reject(new Error("读取图片失败，请重试。"));
+				reader.readAsDataURL(file);
+			});
+		}
+
+		function loadImage(dataUrl) {
+			return new Promise((resolve, reject) => {
+				const image = new Image();
+				image.onload = () => resolve(image);
+				image.onerror = () => reject(new Error("图片格式不受支持，请更换图片。"));
+				image.src = dataUrl;
+			});
+		}
+
+		async function compressImage(sourceDataUrl) {
+			const image = await loadImage(sourceDataUrl);
+			let width = image.naturalWidth || image.width;
+			let height = image.naturalHeight || image.height;
+			if (!width || !height) {
+				throw new Error("无法读取图片尺寸，请更换图片。");
+			}
+
+			const maxDimension = 1600;
+			if (Math.max(width, height) > maxDimension) {
+				const scale = maxDimension / Math.max(width, height);
+				width = Math.round(width * scale);
+				height = Math.round(height * scale);
+			}
+
+			for (let attempt = 0; attempt < 10; attempt += 1) {
+				const canvas = document.createElement("canvas");
+				canvas.width = width;
+				canvas.height = height;
+				const context = canvas.getContext("2d");
+				if (!context) {
+					throw new Error("浏览器无法处理该图片，请更换图片。");
+				}
+				context.fillStyle = "#ffffff";
+				context.fillRect(0, 0, width, height);
+				context.drawImage(image, 0, 0, width, height);
+
+				let quality = 0.85;
+				for (let step = 0; step < 7; step += 1) {
+					const dataUrl = canvas.toDataURL("image/jpeg", quality);
+					if (base64Bytes(dataUrl) <= MAX_IMAGE_BYTES) {
+						return dataUrl;
+					}
+					quality -= 0.1;
+				}
+
+				width = Math.max(1, Math.round(width * 0.75));
+				height = Math.max(1, Math.round(height * 0.75));
+			}
+
+			throw new Error("图片压缩后仍超过 500 KiB，请更换图片。");
+		}
+
+		async function prepareImage(file) {
+			if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
+				throw new Error("请选择 JPG、PNG、WebP 或 GIF 格式的图片。");
+			}
+			if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+				throw new Error("图片文件过大，请选择 25 MiB 以内的图片。");
+			}
+
+			const original = await readFileAsDataURL(file);
+			if (file.size <= MAX_IMAGE_BYTES && ALLOWED_IMAGE_DATA_URL.test(original)) {
+				return {
+					dataUrl: original,
+					bytes: base64Bytes(original),
+					compressed: false
+				};
+			}
+
+			const compressed = await compressImage(original);
+			return {
+				dataUrl: compressed,
+				bytes: base64Bytes(compressed),
+				compressed: true
+			};
+		}
+
+		searchInput.addEventListener("input", render);
+
+		openPublishBtn.addEventListener("click", () => {
+			publishDialog.showModal();
+			titleInput.focus();
+		});
+
+		document.querySelectorAll("[data-close-dialog]").forEach((button) => {
+			button.addEventListener("click", () => {
+				const dialog = document.getElementById(button.dataset.closeDialog);
+				if (dialog && dialog.open) {
+					dialog.close();
+				}
+			});
+		});
+
+		[detailDialog, publishDialog].forEach((dialog) => {
+			dialog.addEventListener("click", (event) => {
+				if (event.target === dialog) {
+					dialog.close();
+				}
+			});
+		});
+
+		detailDialog.addEventListener("close", () => {
+			detailTitle.textContent = "";
+			detailContent.replaceChildren();
+		});
+
+		publishDialog.addEventListener("close", resetPublishForm);
+
+		imageInput.addEventListener("change", async () => {
+			const file = imageInput.files && imageInput.files[0];
+			const token = ++imageProcessToken;
+			selectedImage = null;
+			imagePreviewWrap.hidden = true;
+			imageHint.hidden = true;
+
+			if (!file) {
+				submitBtn.disabled = false;
+				return;
+			}
+
+			submitBtn.disabled = true;
+			imageHint.hidden = false;
+			imageHint.textContent = "正在处理图片…";
+
+			try {
+				const result = await prepareImage(file);
+				if (token !== imageProcessToken) {
+					return;
+				}
+				selectedImage = result.dataUrl;
+				imagePreview.src = result.dataUrl;
+				imagePreviewWrap.hidden = false;
+				imageHint.textContent = result.compressed
+					? "图片已自动压缩至 " + formatBytes(result.bytes) + "。"
+					: "已选择图片（" + formatBytes(result.bytes) + "）。";
+			} catch (error) {
+				if (token !== imageProcessToken) {
+					return;
+				}
+				selectedImage = null;
+				imageInput.value = "";
+				imagePreviewWrap.hidden = true;
+				imageHint.hidden = true;
+				alert(error && error.message ? error.message : "图片处理失败，请更换图片。");
+			} finally {
+				if (token === imageProcessToken) {
+					submitBtn.disabled = false;
+				}
+			}
+		});
+
+		removeImageBtn.addEventListener("click", () => {
+			imageProcessToken += 1;
+			selectedImage = null;
+			imageInput.value = "";
+			imagePreview.removeAttribute("src");
+			imagePreviewWrap.hidden = true;
+			imageHint.hidden = true;
+			imageHint.textContent = "";
+			submitBtn.disabled = false;
+		});
+
+		publishForm.addEventListener("submit", (event) => {
+			event.preventDefault();
+
+			const title = titleInput.value.trim();
+			const location = locationInput.value.trim();
+			const contact = contactInput.value.trim();
+
+			if (!title || !location) {
+				alert("请填写物品名称和丢失地点");
+				if (!title) {
+					titleInput.focus();
+				} else {
+					locationInput.focus();
+				}
+				return;
+			}
+
+			if (!contact) {
+				alert("请填写联系方式");
+				contactInput.focus();
+				return;
+			}
+
+			const item = {
+				id: createId(),
+				title: title,
+				location: location,
+				time: timeInput.value || "",
+				contact: contact,
+				status: "待认领",
+				createdAt: Date.now()
+			};
+
+			if (selectedImage) {
+				item.image = selectedImage;
+			}
+
+			items.push(item);
+			if (!persistItems()) {
+				items.pop();
+				return;
+			}
+
+			publishDialog.close();
+			render();
+			showToast("发布成功");
+		});
+
+		render();
 	</script>
 </body>
 </html>
